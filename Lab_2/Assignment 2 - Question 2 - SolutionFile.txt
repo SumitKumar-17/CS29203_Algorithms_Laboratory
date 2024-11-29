@@ -1,0 +1,140 @@
+/*
+    Author: Debanjan Saha
+    Problem: Assignment-2
+    Question: 2
+*/
+#include<stdio.h>
+
+typedef struct _point {
+    int index;
+    int dominant_index;
+    double x, y;
+}point;
+
+int compare_x(point a, point b){
+    if(a.x < b.x){
+        return 1; 
+    }
+    return 0;
+}
+
+int compare_y(point a, point b){
+    if(a.y < b.y){
+        return 1; 
+    }
+    return 0;
+}
+
+// Helper functions for sorting
+void merge(point points[], int l, int mid, int r, int compare_by_y){
+    // if compare_y = 1, then sort by y, else sort by x
+    int p = l;
+    int q = mid+1;
+    int len = r-l+1;
+    point temp[len];
+
+    int i=0;
+    while(p<=mid && q<=r){
+        int condition;
+        if(compare_by_y){
+            condition = compare_y(points[p], points[q]);
+        }else{
+            condition = compare_x(points[p], points[q]);
+        }
+        if(condition == 1){
+            temp[i++] = points[p];
+            p++;
+        } else{
+            temp[i++] = points[q];
+            q++;
+        }
+    }
+
+    while(p<=mid){
+        temp[i++] = points[p];
+        p++;
+    }
+
+    while(q<=r){
+        temp[i++] = points[q];
+        q++;
+    }
+
+    for(int i=0;i<len;++i){
+        points[l+i] = temp[i];
+    }
+}
+
+void merge_sort(point points[], int l, int r, int compare_by_y){
+    // if compare_y = 1, then sort by y, else sort by x
+    if(l==r){
+        return;
+    }
+    int mid = (l+r)/2;
+    merge_sort(points, l, mid, compare_by_y);
+    merge_sort(points, mid+1, r, compare_by_y);
+    merge(points, l, mid, r, compare_by_y);
+}
+
+// For solving the actual problem
+void merge_partitions(point points[], int l, int mid, int r){
+    int p = l;
+    int q = mid+1;
+    int len = r-l+1;
+    point temp[len];
+    // sort the points by x coordinate
+    merge_sort(points, l, mid, 0);
+    merge_sort(points, mid+1, r, 0);
+
+    int idx=l;
+    // check how many points in the left half has a x coordinate less than the current point being considered in the loop
+    for(int i=mid+1;i<=r;++i){
+        while(idx<=mid && points[idx].x < points[i].x){
+            idx++;
+        }
+        points[i].dominant_index += idx-l;
+    }
+}
+
+void solve(point points[], int l, int r){
+    if(l==r){
+        return;
+    }
+
+    int mid = (l+r)/2;
+    solve(points, l, mid);
+    solve(points, mid+1, r);
+    merge_partitions(points, l, mid, r);
+}
+
+int main(){
+    int n;
+    printf("Enter number of points:");
+    scanf("%d", &n);
+    point points[n];
+    double x,y;
+    for(int i=0;i<n;++i){
+        printf("Enter x, y for point %d:", i+1);
+        scanf("%lf %lf", &x, &y);
+        points[i].index = i;
+        points[i].x = x;
+        points[i].y = y;
+        points[i].dominant_index = 0;
+    }
+
+    merge_sort(points, 0, n-1, 1);
+    // for(int i=0;i<n;++i){
+    //     printf("%d (%f, %f)\n", points[i].index, points[i].x, points[i].y);
+    // }
+
+    solve(points, 0, n-1);
+    int ans[n];
+    printf("Dominant indices: ");
+    for(int i=0;i<n;++i){
+        ans[points[i].index] = points[i].dominant_index;
+    }
+    for(int i=0;i<n;++i){
+        printf("%d ", ans[i]);
+    }
+    printf("\n");
+}

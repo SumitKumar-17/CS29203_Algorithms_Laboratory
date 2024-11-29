@@ -1,0 +1,79 @@
+#include <stdio.h>
+
+// Function to swap two rows
+void swap(int arr[][3], int a, int b) {
+    for (int i = 0; i < 3; i++) {
+        int temp = arr[a][i];
+        arr[a][i] = arr[b][i];
+        arr[b][i] = temp;
+    }
+}
+
+// Partition function for quicksort
+int partition(int arr[][3], int low, int high) {
+    int pivot = arr[high][1];
+    int i = low - 1;
+
+    for (int j = low; j <= high - 1; j++) {
+        if (arr[j][1] <= pivot) {
+            i++;
+            swap(arr, i, j);
+        }
+    }
+    swap(arr, i + 1, high);
+    return i + 1;
+}
+
+// Quicksort function
+void quickSort(int arr[][3], int low, int high) {
+    if (low < high) {
+        int pi = partition(arr, low, high);
+        quickSort(arr, low, pi - 1);
+        quickSort(arr, pi + 1, high);
+    }
+}
+
+int main() {
+    int lookup[100] = {0}; //Maintain the time slots record. Size of lookup can be selected as highest end time among all programs
+    int s,e,d,i,j,time_slot,n,lookup_size=0;
+    printf("Enter number of programs: ");
+    scanf("%d",&n);
+    int programs[n][3];
+    for(i = 0; i < n; i++){
+        printf("Enter start_time, End_time and Duration of Program[%d]  ",i+1);
+        scanf("%d %d %d",&programs[i][0],&programs[i][1], &programs[i][2]);
+    }
+
+    // Perform quicksort based on the end time of the programs
+    quickSort(programs, 0, n - 1);
+
+    for (i = 0; i < n; i++) {
+        s = programs[i][0];
+        e = programs[i][1];
+        d = programs[i][2];
+        time_slot = 0;
+	//Check if there is any active time slot available between start time and end time
+        for (j = s; j <= e; j++){
+            if(lookup[j] == 1){
+                time_slot++;
+            }
+        }
+        d-= time_slot;
+	//Fill the time slots from end time
+        for (j = e; j>=1; j--){
+            if(d<=0) break; //check if any duration is remaining after allocating all active time slots available in between start time and end time
+            if(lookup[j] == 1) continue; // if time slot is already active then go for the next time slot
+            lookup[j] = 1;
+            d--;
+        }
+    }
+
+    //check the total time slots required for all program
+    for(i = 0; i < 100; i++){
+        if(lookup[i] == 1) lookup_size++;
+    }
+    
+    printf("%d",lookup_size);
+    
+    return 0;
+}

@@ -1,0 +1,29 @@
+#include<stdio.h>
+
+void stableindex(int n, int arr[]){
+    
+    int sum = 0;
+    for(int i = 0; i < n; i++) sum += arr[i];
+    
+    int presum = 0, k = 0;
+    for(int i = 0; i < n; i++){
+        if(sum - presum - arr[i] == presum){
+            printf("%d ", i);
+        }
+        presum += arr[i];
+    }
+    
+    return ;
+}
+
+
+int main() {
+    int n = 8;
+    int arr[] = {0, -3, 5, -4, -2, 3, 1, 0};
+    
+    printf("stable index(s) is/are\n");
+    stableindex(n, arr);
+    
+    
+    return 0;
+}

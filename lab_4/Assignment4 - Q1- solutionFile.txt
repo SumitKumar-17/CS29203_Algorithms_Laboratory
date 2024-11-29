@@ -1,0 +1,80 @@
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+// Utility function to get max of 2 integers
+int max(int a, int b) { return (a > b) ? a : b; }
+
+// Returns length of LCS for X[0..m-1] and Y[0..n-1]
+int longestCommonSubsequence(char* X, char* Y, int m, int n, int** dp)
+{
+    // Base case
+    if (m == 0 || n == 0)
+        return 0;
+
+    // If the result for this subproblem is already computed, return it
+    if (dp[m][n] != -1)
+        return dp[m][n];
+
+    // If the last characters of the strings match, reduce the problem
+    if (X[m - 1] == Y[n - 1]) 
+        dp[m][n] = 1 + longestCommonSubsequence(X, Y, m - 1, n - 1, dp);
+    else {
+        // If the last characters don't match, consider two cases:
+        // 1. Excluding the last character of the first string
+        // 2. Excluding the last character of the second string
+        dp[m][n] = max(longestCommonSubsequence(X, Y, m - 1, n, dp), longestCommonSubsequence(X, Y, m, n - 1, dp));
+    }
+
+    // Return the computed result for this subproblem
+    return dp[m][n];
+}
+
+void diff_string(char* X, char* Y, int m, int n, int** LCS_table)
+{
+    // if the last character of X and Y matches
+    if (m > 0 && n > 0 && X[m - 1] == Y[n - 1])
+    {
+        diff_string(X, Y, m - 1, n - 1, LCS_table);
+        printf("%c ", X[m - 1]);
+    }    
+ 
+    // if the current character of Y is not present in X
+    else if (n > 0 && (m == 0 || LCS_table[m][n - 1] >= LCS_table[m - 1][n]))
+    {
+        diff_string(X, Y, m, n - 1, LCS_table);
+        printf("+%c " , Y[n - 1]);
+    }
+
+    // if the current character of X is not present in Y
+    else if (m > 0 && (n == 0 || LCS_table[m][n - 1] < LCS_table[m - 1][n]))
+    {
+        diff_string(X, Y, m - 1, n, LCS_table);
+        printf("-%c ", X[m - 1]);
+    } 
+}
+
+int main()
+{
+	char X[500], Y[500];
+	printf("Enter X:");
+    scanf("%s", X);
+    printf("Enter Y:");
+    scanf("%s", Y);
+	int m = strlen(X);
+	int n = strlen(Y);
+	int i, j = 0;
+    int **LCS_table;
+    LCS_table = (int **)malloc((m + 1) * sizeof(int *));
+    for (i = 0; i <= m; i++)
+        LCS_table[i] = (int *)malloc((n + 1) * sizeof(int));
+
+    for ( i = 0; i <= m; i++) 
+        for ( j = 0; j <= n; j++) 
+            LCS_table[i][j] = -1;
+
+    int len = longestCommonSubsequence(X, Y, m, n, LCS_table);
+    // printf("Length of Longest Common Subsequence: %d\n", len);
+	diff_string(X, Y, m, n, LCS_table);
+	return 0;
+}

@@ -1,0 +1,153 @@
+#include<stdio.h>
+#include<stdlib.h>
+
+typedef struct tree{
+    int data;
+    struct tree *left;
+    struct tree *right;
+} node;
+
+const int NULL_NODE = -1;
+
+node *createNode(int data){
+    if(data==NULL_NODE){
+        return NULL;
+    }
+    node *newNode = (node *)malloc(sizeof(node));
+    newNode->data = data;
+    newNode->left = NULL;
+    newNode->right = NULL;
+    return newNode;
+}
+
+void updateNode(node *cur, int data){
+    if(cur==NULL){
+        return;
+    }
+    cur->data = data;
+}
+
+void printNode(node *cur){
+    if(cur==NULL){
+        printf("-1");
+        return;
+    }
+    printf("%d", cur->data);
+}
+
+int max(int a, int b){
+    if(a>b){
+        return a;
+    }
+    return b;
+}
+
+int getLevels(node *cur){
+    if(cur==NULL){
+        return 0;
+    }
+    int leftLevels = getLevels(cur->left);
+    int rightLevels = getLevels(cur->right);
+    return 1 + max(leftLevels, rightLevels);
+}
+
+void calculateLevelSum(node *cur, int level, int *levelSums){
+    if(cur==NULL){
+        return;
+    }
+    levelSums[level] += cur->data;
+    calculateLevelSum(cur->left, level+1, levelSums);
+    calculateLevelSum(cur->right, level+1, levelSums);
+}
+
+void replaceValue(node *cur, int level, int *maxLevels, int *levelSum){
+    if(cur==NULL){
+        return;
+    }
+    if(level==0){
+        // If root, then replace value 0
+        updateNode(cur, 0);
+    }
+    if(level+1 > *maxLevels){
+        return;
+    }
+    int nextLevelSum = levelSum[level+1];
+    if(cur->left){
+        nextLevelSum -= cur->left->data;
+    }
+    if(cur->right){
+        nextLevelSum -= cur->right->data;
+    }
+    if(cur->left){
+        updateNode(cur->left, nextLevelSum);
+    }
+    if(cur->right){
+        updateNode(cur->right, nextLevelSum);
+    }
+    replaceValue(cur->left, level+1, maxLevels, levelSum);
+    replaceValue(cur->right, level+1, maxLevels, levelSum);
+}
+
+int main(){
+    int n;
+    printf("Enter size of array: ");
+    scanf("%d", &n);
+    int arr[n];
+    printf("Enter array elements: ");
+    for(int i=0;i<n;++i){
+        scanf("%d", &arr[i]);
+    }
+
+
+    node *nodes[n];
+    for(int i=0;i<n;++i){
+        nodes[i] = createNode(arr[i]);
+    }
+    node *root = nodes[0];
+
+    int curParent = 0;
+    node *curNode = root;
+    for(int i=1;i<n;i+=2){
+        curNode->left = nodes[i];
+        if(i+1<n){
+            curNode->right = nodes[i+1];
+        }
+        ++curParent;
+        while(curParent<i && arr[curParent]==NULL_NODE){
+            ++curParent;
+        }
+        curNode = nodes[curParent];
+    }
+
+    int levels = getLevels(root);
+    int levelSum[levels];
+    for(int i=0;i<levels;++i){
+        levelSum[i] = 0;
+    }
+    calculateLevelSum(root, 0, levelSum);
+    
+    replaceValue(root, 0, &levels, levelSum);
+    
+    // Perform BFS to do level order traversal and print output
+    node* queue[n];
+    int front = 0, rear = -1;
+    queue[++rear] = root;
+    printf("[");
+    while(front<n){
+        node *cur = queue[front++];
+        printNode(cur);
+        if(front<n){
+            printf(", ");
+        }
+        if(!cur){
+            continue;
+        }
+        if(rear<n){
+            queue[++rear] = cur->left;
+        }
+        if(rear<n){
+            queue[++rear] = cur->right;
+        }
+    }
+    printf("]\n");
+}
